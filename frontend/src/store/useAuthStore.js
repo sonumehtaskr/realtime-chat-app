@@ -2,8 +2,9 @@ import { create } from "zustand";
 import { axiosInstance } from "../lib/axios.js";
 import toast from "react-hot-toast";
 import { io } from "socket.io-client";
+import { useCallStore } from "./useCallStore";
 
-const BASE_URL = import.meta.env.VITE_MODE === "development" ? "http://localhost:5001" : import.meta.env.VITE_API_URL;
+const BASE_URL = import.meta.env.VITE_MODE === "development" ? "http://localhost:5001" : import.meta.env.VITE_API_URL || "" ;
 
 export const useAuthStore = create((set, get) => ({
   authUser: null,
@@ -95,12 +96,16 @@ export const useAuthStore = create((set, get) => ({
 
     set({ socket: socket });
 
+    useCallStore.getState().bindSocket(socket);
+
     socket.on("getOnlineUsers", (userIds) => {
       set({ onlineUsers: userIds });
     });
   },
 
   disconnectSocket: () => {
+    const callStatus = useCallStore.getState().callStatus;
+    if (callStatus !== "idle") useCallStore.getState().endCall();
     if (get().socket?.connected) get().socket.disconnect();
   },
 }));

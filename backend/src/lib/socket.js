@@ -29,6 +29,54 @@ io.on("connection", (socket) => {
     delete userSocketMap[userId];
     io.emit("getOnlineUsers", Object.keys(userSocketMap));
   });
+
+  socket.on("call:request", (payload) => {
+    const receiverSocketId = getReceiverSocketId(payload.toUserId);
+    if (!receiverSocketId) {
+      socket.emit("call:unavailable", {
+        toUserId: payload.toUserId,
+        callId: payload.callId,
+      });
+      return;
+    }
+
+    io.to(receiverSocketId).emit("call:request", payload);
+  });
+
+  socket.on("call:accept", (payload) => {
+    const receiverSocketId = getReceiverSocketId(payload.toUserId);
+    if (receiverSocketId) {
+      io.to(receiverSocketId).emit("call:accept", payload);
+    }
+  });
+
+  socket.on("call:reject", (payload) => {
+    const receiverSocketId = getReceiverSocketId(payload.toUserId);
+    if (receiverSocketId) {
+      io.to(receiverSocketId).emit("call:reject", payload);
+    }
+  });
+
+  socket.on("call:end", (payload) => {
+    const receiverSocketId = getReceiverSocketId(payload.toUserId);
+    if (receiverSocketId) {
+      io.to(receiverSocketId).emit("call:end", payload);
+    }
+  });
+
+  socket.on("call:answer", (payload) => {
+    const receiverSocketId = getReceiverSocketId(payload.toUserId);
+    if (receiverSocketId) {
+      io.to(receiverSocketId).emit("call:answer", payload);
+    }
+  });
+
+  socket.on("call:ice-candidate", (payload) => {
+    const receiverSocketId = getReceiverSocketId(payload.toUserId);
+    if (receiverSocketId) {
+      io.to(receiverSocketId).emit("call:ice-candidate", payload);
+    }
+  });
 });
 
 export { io, app, server };
